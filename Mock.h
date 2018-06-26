@@ -1,3 +1,5 @@
+#ifndef MOCK_H
+#define MOCK_H
 #include <algorithm>
 #include <iostream>
 #include <functional>
@@ -5,6 +7,8 @@
 #include <string>
 #include <tuple>
 #include <vector>
+
+#include "Test.h"
 
 template <typename T>
 struct function_traits;
@@ -32,6 +36,7 @@ class MockMap {
   ~MockMap() {
     for (const auto& elem : map_) {
       for (const auto& tuple: elem.second) {
+        SET_TEST_FAILED();
         std::cerr << "Expected call was not called: " << std::get<0>(tuple) << std::endl;
         if constexpr(sizeof...(ARGS) > 0) {
           std::cerr << "with value(s): " << std::get<2>(tuple);
@@ -76,6 +81,7 @@ std::ostream& operator<<(std::ostream& ostr, const MockAnyValue&) {
     auto funptr = static_cast<result_type(this_type::*)()>(&this_type::_name_);\
     auto iter = g_map<this_type>.map_.find(this);\
     if (iter == g_map<this_type>.map_.end()) {\
+      SET_TEST_FAILED();\
       std::cerr << "Not expected mock function called: " << getNameForType<this_type>() << "::" << #_name_ << std::endl;\
       return;\
     }\
@@ -85,6 +91,7 @@ std::ostream& operator<<(std::ostream& ostr, const MockAnyValue&) {
                                return std::get<1>(tuple) == funptr;\
                              });\
     if (elem == iter->second.end()) {\
+      SET_TEST_FAILED();\
       std::cerr << "Not expected mock function called:" << getNameForType<this_type>() << "::" << #_name_ << std::endl;\
       return;\
     }\
@@ -154,6 +161,7 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT arg1) {\
         find_element_in_mocks_map_##_name_<this_type, result_type, MockAnyValue>(this, AnyValue::_) == true) {\
       return;\
     }\
+    SET_TEST_FAILED();\
     std::cerr << "Not expected mock function called:" << getNameForType<this_type>() << "::" << #_name_ << std::endl;\
     std::cerr << "with value: " << arg1 << std::endl << std::endl;\
   }\
@@ -216,6 +224,7 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2) {\
         find_element_in_mocks_map_##_name_<this_type, result_type, MockAnyValue, MockAnyValue>(this, AnyValue::_, AnyValue::_) == true) {\
       return;\
     }\
+    SET_TEST_FAILED();\
     std::cerr << "Not expected mock function called:" << getNameForType<this_type>() << "::" << #_name_ << std::endl;\
     std::cerr << "with values: " << arg1 << " ; " << arg2 << std::endl << std::endl;\
   }\
@@ -301,6 +310,7 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2, AT3 arg3
         find_element_in_mocks_map_##_name_<this_type, result_type, MockAnyValue, MockAnyValue, MockAnyValue>(this, AnyValue::_, AnyValue::_, AnyValue::_) == true) {\
       return;\
     }\
+    SET_TEST_FAILED();\
     std::cerr << "Not expected mock function called:" << getNameForType<this_type>() << "::" << #_name_ << std::endl;\
     std::cerr << "with values: " << arg1 << " ; " << arg2 << " ; " << arg3 << std::endl << std::endl;\
   }\
@@ -354,3 +364,4 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2, AT3 arg3
             MockAnyValue)
 
 #define EXPECT_CALL(obj, fun) obj.MOCK_##fun
+#endif  // MOCK_H
