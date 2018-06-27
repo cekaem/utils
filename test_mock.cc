@@ -13,6 +13,7 @@ class Interface {
 
 class Inh : public Interface {
  public:
+  MOCK_CLASS(Inh)
   MOCK_METHOD0(foo, void());
   MOCK_METHOD1(foo, void(int));
   MOCK_METHOD1(foo2, void(double));

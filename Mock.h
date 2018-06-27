@@ -30,11 +30,17 @@ std::string getNameForType() {
 }
 
 template <typename T, typename ...ARGS>
-class MockMap {
+std::map<T*, std::vector<std::tuple<std::string, void(T::*)(ARGS...), ARGS...>>> g_map;
+
+template <typename T, typename ...ARGS>
+class MockMapChecker {
  public:
-  std::map<T*, std::vector<std::tuple<std::string, void(T::*)(ARGS...), ARGS...>>> map_;
-  ~MockMap() {
-    for (const auto& elem : map_) {
+  MockMapChecker() : map_{nullptr} {
+    map_ = &g_map<T, ARGS...>;
+  }
+
+  ~MockMapChecker() {
+    for (const auto& elem : *map_) {
       for (const auto& tuple: elem.second) {
         SET_TEST_FAILED();
         std::cerr << "Expected call was not called: " << std::get<0>(tuple) << std::endl;
@@ -51,10 +57,10 @@ class MockMap {
       }
     }
   }
-};
 
-template <typename T, typename ...ARGS>
-MockMap<T, ARGS...> g_map;
+ private:
+  std::map<T*, std::vector<std::tuple<std::string, void(T::*)(ARGS...), ARGS...>>>* map_{nullptr};
+};
 
 class MockAnyValue {
  public:
@@ -74,13 +80,20 @@ std::ostream& operator<<(std::ostream& ostr, const MockAnyValue&) {
   return ostr;
 }
 
+#define CONC2(s1, s2) s1 ## s2
+#define CONC(s1, s2) CONC2(s1, s2)
+#define UNIQUE_NAME CONC(UN_, __COUNTER__)
+
+#define MOCK_CLASS(_NAME_) using CLASS_TYPE = _NAME_;
+
 #define MOCK_METHOD0(_name_, _type_)\
+  MockMapChecker<CLASS_TYPE> UNIQUE_NAME;\
   function_traits<std::function<_type_>>::result_type _name_() override {\
     using this_type = std::remove_reference<decltype(*this)>::type;\
     using result_type = function_traits<std::function<_type_>>::result_type;\
     auto funptr = static_cast<result_type(this_type::*)()>(&this_type::_name_);\
-    auto iter = g_map<this_type>.map_.find(this);\
-    if (iter == g_map<this_type>.map_.end()) {\
+    auto iter = g_map<this_type>.find(this);\
+    if (iter == g_map<this_type>.end()) {\
       SET_TEST_FAILED();\
       std::cerr << "Not expected mock function called: " << getNameForType<this_type>() << "::" << #_name_ << std::endl;\
       return;\
@@ -102,11 +115,11 @@ std::ostream& operator<<(std::ostream& ostr, const MockAnyValue&) {
     using this_type = std::remove_reference<decltype(*this)>::type;\
     using result_type = function_traits<std::function<_type_>>::result_type;\
     auto funptr = static_cast<result_type(this_type::*)()>(&this_type::_name_);\
-    auto iter = g_map<this_type>.map_.find(this);\
-    if (iter == g_map<this_type>.map_.end()) {\
+    auto iter = g_map<this_type>.find(this);\
+    if (iter == g_map<this_type>.end()) {\
       std::vector<std::tuple<std::string, decltype(funptr)>> vec;\
       vec.push_back(std::make_tuple(getNameForType<this_type>() + "::" + #_name_, funptr));\
-      g_map<this_type>.map_[this] = vec;\
+      g_map<this_type>[this] = vec;\
     } else {\
       iter->second.push_back(std::make_tuple(getNameForType<this_type>() + "::" + #_name_, funptr));\
     }\
@@ -116,11 +129,11 @@ std::ostream& operator<<(std::ostream& ostr, const MockAnyValue&) {
   void MOCK_##_name_(_arg1_type_ arg1) {\
     using this_type = std::remove_reference<decltype(*this)>::type;\
     auto funptr = static_cast<_result_type_(this_type::*)(_arg1_type_)>(&this_type::_name_);\
-    auto iter = g_map<this_type, _arg1_type_>.map_.find(this);\
-    if (iter == g_map<this_type, _arg1_type_>.map_.end()) {\
+    auto iter = g_map<this_type, _arg1_type_>.find(this);\
+    if (iter == g_map<this_type, _arg1_type_>.end()) {\
       std::vector<std::tuple<std::string, decltype(funptr), _arg1_type_>> vec;\
       vec.push_back(std::make_tuple(getNameForType<this_type>() + "::" + #_name_, funptr, arg1));\
-      g_map<this_type, _arg1_type_>.map_[this] = vec;\
+      g_map<this_type, _arg1_type_>[this] = vec;\
     } else {\
       iter->second.push_back(std::make_tuple(getNameForType<this_type>() + "::" + #_name_, funptr, arg1));\
     }\
@@ -133,8 +146,8 @@ std::ostream& operator<<(std::ostream& ostr, const MockAnyValue&) {
 template <typename OT, typename RT, typename AT>\
 bool find_element_in_mocks_map_##_name_(OT* object, AT arg1) {\
   auto funptr = static_cast<RT(OT::*)(AT)>(&OT::_name_);\
-  auto iter = g_map<OT, AT>.map_.find(object);\
-  if (iter == g_map<OT, AT>.map_.end()) {\
+  auto iter = g_map<OT, AT>.find(object);\
+  if (iter == g_map<OT, AT>.end()) {\
     return false;\
   }\
   auto elem = std::find_if(std::begin(iter->second),\
@@ -151,6 +164,8 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT arg1) {\
 }
 
 #define MOCK_METHOD1(_name_, _type_)\
+  MockMapChecker<CLASS_TYPE, function_traits<std::function<_type_>>::arg<0>::type> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE, MockAnyValue> UNIQUE_NAME;\
   FIND_ELEMENT_IN_MOCKS_MAP1(_name_)\
   function_traits<std::function<_type_>>::result_type _name_(\
       function_traits<std::function<_type_>>::arg<0>::type arg1) override {\
@@ -177,8 +192,8 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT arg1) {\
 template <typename OT, typename RT, typename AT1, typename AT2>\
 bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2) {\
   auto funptr = static_cast<RT(OT::*)(AT1, AT2)>(&OT::_name_);\
-  auto iter = g_map<OT, AT1, AT2>.map_.find(object);\
-  if (iter == g_map<OT, AT1, AT2>.map_.end()) {\
+  auto iter = g_map<OT, AT1, AT2>.find(object);\
+  if (iter == g_map<OT, AT1, AT2>.end()) {\
     return false;\
   }\
   auto elem = std::find_if(std::begin(iter->second),\
@@ -199,17 +214,29 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2) {\
   void MOCK_##_name_(_arg1_type_ arg1, _arg2_type_ arg2) {\
     using this_type = std::remove_reference<decltype(*this)>::type;\
     auto funptr = static_cast<_result_type_(this_type::*)(_arg1_type_, _arg2_type_)>(&this_type::_name_);\
-    auto iter = g_map<this_type, _arg1_type_, _arg2_type_>.map_.find(this);\
-    if (iter == g_map<this_type, _arg1_type_, _arg2_type_>.map_.end()) {\
+    auto iter = g_map<this_type, _arg1_type_, _arg2_type_>.find(this);\
+    if (iter == g_map<this_type, _arg1_type_, _arg2_type_>.end()) {\
       std::vector<std::tuple<std::string, decltype(funptr), _arg1_type_, _arg2_type_>> vec;\
       vec.push_back(std::make_tuple(getNameForType<this_type>() + "::" + #_name_, funptr, arg1, arg2));\
-      g_map<this_type, _arg1_type_, _arg2_type_>.map_[this] = vec;\
+      g_map<this_type, _arg1_type_, _arg2_type_>[this] = vec;\
     } else {\
       iter->second.push_back(std::make_tuple(getNameForType<this_type>() + "::" + #_name_, funptr, arg1, arg2));\
     }\
   }
 
 #define MOCK_METHOD2(_name_, _type_)\
+  MockMapChecker<CLASS_TYPE,\
+                 function_traits<std::function<_type_>>::arg<0>::type,\
+                 function_traits<std::function<_type_>>::arg<1>::type> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE,\
+                 MockAnyValue,\
+                 function_traits<std::function<_type_>>::arg<1>::type> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE,\
+                 function_traits<std::function<_type_>>::arg<0>::type,\
+                 MockAnyValue> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE,\
+                 MockAnyValue,\
+                 MockAnyValue> UNIQUE_NAME;\
   FIND_ELEMENT_IN_MOCKS_MAP2(_name_)\
   function_traits<std::function<_type_>>::result_type _name_(\
       function_traits<std::function<_type_>>::arg<0>::type arg1,\
@@ -256,8 +283,8 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2) {\
 template <typename OT, typename RT, typename AT1, typename AT2, typename AT3>\
 bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2, AT3 arg3) {\
   auto funptr = static_cast<RT(OT::*)(AT1, AT2, AT3)>(&OT::_name_);\
-  auto iter = g_map<OT, AT1, AT2, AT3>.map_.find(object);\
-  if (iter == g_map<OT, AT1, AT2, AT3>.map_.end()) {\
+  auto iter = g_map<OT, AT1, AT2, AT3>.find(object);\
+  if (iter == g_map<OT, AT1, AT2, AT3>.end()) {\
     return false;\
   }\
   auto elem = std::find_if(std::begin(iter->second),\
@@ -279,17 +306,49 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2, AT3 arg3
   void MOCK_##_name_(_arg1_type_ arg1, _arg2_type_ arg2, _arg3_type_ arg3) {\
     using this_type = std::remove_reference<decltype(*this)>::type;\
     auto funptr = static_cast<_result_type_(this_type::*)(_arg1_type_, _arg2_type_, _arg3_type_)>(&this_type::_name_);\
-    auto iter = g_map<this_type, _arg1_type_, _arg2_type_, _arg3_type_>.map_.find(this);\
-    if (iter == g_map<this_type, _arg1_type_, _arg2_type_, _arg3_type_>.map_.end()) {\
+    auto iter = g_map<this_type, _arg1_type_, _arg2_type_, _arg3_type_>.find(this);\
+    if (iter == g_map<this_type, _arg1_type_, _arg2_type_, _arg3_type_>.end()) {\
       std::vector<std::tuple<std::string, decltype(funptr), _arg1_type_, _arg2_type_, _arg3_type_>> vec;\
       vec.push_back(std::make_tuple(getNameForType<this_type>() + "::" + #_name_, funptr, arg1, arg2, arg3));\
-      g_map<this_type, _arg1_type_, _arg2_type_, _arg3_type_>.map_[this] = vec;\
+      g_map<this_type, _arg1_type_, _arg2_type_, _arg3_type_>[this] = vec;\
     } else {\
       iter->second.push_back(std::make_tuple(getNameForType<this_type>() + "::" + #_name_, funptr, arg1, arg2, arg3));\
     }\
   }
 
 #define MOCK_METHOD3(_name_, _type_)\
+  MockMapChecker<CLASS_TYPE,\
+                 function_traits<std::function<_type_>>::arg<0>::type,\
+                 function_traits<std::function<_type_>>::arg<1>::type,\
+                 function_traits<std::function<_type_>>::arg<2>::type> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE,\
+                 MockAnyValue,\
+                 function_traits<std::function<_type_>>::arg<1>::type,\
+                 function_traits<std::function<_type_>>::arg<2>::type> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE,\
+                 function_traits<std::function<_type_>>::arg<0>::type,\
+                 MockAnyValue,\
+                 function_traits<std::function<_type_>>::arg<2>::type> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE,\
+                 function_traits<std::function<_type_>>::arg<0>::type,\
+                 function_traits<std::function<_type_>>::arg<1>::type,\
+                 MockAnyValue> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE,\
+                 MockAnyValue,\
+                 MockAnyValue,\
+                 function_traits<std::function<_type_>>::arg<2>::type> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE,\
+                 MockAnyValue,\
+                 function_traits<std::function<_type_>>::arg<1>::type,\
+                 MockAnyValue> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE,\
+                 function_traits<std::function<_type_>>::arg<0>::type,\
+                 MockAnyValue,\
+                 MockAnyValue> UNIQUE_NAME;\
+  MockMapChecker<CLASS_TYPE,\
+                 MockAnyValue,\
+                 MockAnyValue,\
+                 MockAnyValue> UNIQUE_NAME;\
   FIND_ELEMENT_IN_MOCKS_MAP3(_name_)\
   function_traits<std::function<_type_>>::result_type _name_(\
       function_traits<std::function<_type_>>::arg<0>::type arg1,\
