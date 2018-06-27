@@ -35,12 +35,8 @@ std::map<T*, std::vector<std::tuple<std::string, void(T::*)(ARGS...), ARGS...>>>
 template <typename T, typename ...ARGS>
 class MockMapChecker {
  public:
-  MockMapChecker() : map_{nullptr} {
-    map_ = &g_map<T, ARGS...>;
-  }
-
   ~MockMapChecker() {
-    for (const auto& elem : *map_) {
+    for (const auto& elem : g_map<T, ARGS...>) {
       for (const auto& tuple: elem.second) {
         SET_TEST_FAILED();
         std::cerr << "Expected call was not called: " << std::get<0>(tuple) << std::endl;
@@ -57,9 +53,6 @@ class MockMapChecker {
       }
     }
   }
-
- private:
-  std::map<T*, std::vector<std::tuple<std::string, void(T::*)(ARGS...), ARGS...>>>* map_{nullptr};
 };
 
 class MockAnyValue {
