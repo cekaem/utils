@@ -274,7 +274,7 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2) {\
 
 #define FIND_ELEMENT_IN_MOCKS_MAP3(_name_)\
 template <typename OT, typename RT, typename AT1, typename AT2, typename AT3>\
-bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2, AT3 arg3) {\
+bool find_element_in_mocks_map(OT* object, AT1 arg1, AT2 arg2, AT3 arg3) {\
   auto funptr = static_cast<RT(OT::*)(AT1, AT2, AT3)>(&OT::_name_);\
   auto iter = g_map<OT, AT1, AT2, AT3>.find(object);\
   if (iter == g_map<OT, AT1, AT2, AT3>.end()) {\
@@ -352,14 +352,14 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2, AT3 arg3
     using arg2_type = decltype(arg2);\
     using arg3_type = decltype(arg3);\
     using result_type = function_traits<std::function<_type_>>::result_type;\
-    if (find_element_in_mocks_map_##_name_<this_type, result_type, arg1_type, arg2_type, arg3_type>(this, arg1, arg2, arg3) == true ||\
-        find_element_in_mocks_map_##_name_<this_type, result_type, arg1_type, arg2_type, MockAnyValue>(this, arg1, arg2, AnyValue::_) == true ||\
-        find_element_in_mocks_map_##_name_<this_type, result_type, arg1_type, MockAnyValue, arg3_type>(this, arg1, AnyValue::_, arg3) == true ||\
-        find_element_in_mocks_map_##_name_<this_type, result_type, MockAnyValue, arg2_type, arg3_type>(this, AnyValue::_, arg2, arg3) == true ||\
-        find_element_in_mocks_map_##_name_<this_type, result_type, arg1_type, MockAnyValue, MockAnyValue>(this, arg1, AnyValue::_, AnyValue::_) == true ||\
-        find_element_in_mocks_map_##_name_<this_type, result_type, MockAnyValue, arg2_type, MockAnyValue>(this, AnyValue::_, arg2, AnyValue::_) == true ||\
-        find_element_in_mocks_map_##_name_<this_type, result_type, MockAnyValue, MockAnyValue, arg3_type>(this, AnyValue::_, AnyValue::_, arg3) == true ||\
-        find_element_in_mocks_map_##_name_<this_type, result_type, MockAnyValue, MockAnyValue, MockAnyValue>(this, AnyValue::_, AnyValue::_, AnyValue::_) == true) {\
+    if (find_element_in_mocks_map<this_type, result_type, arg1_type, arg2_type, arg3_type>(this, arg1, arg2, arg3) == true ||\
+        find_element_in_mocks_map<this_type, result_type, arg1_type, arg2_type, MockAnyValue>(this, arg1, arg2, AnyValue::_) == true ||\
+        find_element_in_mocks_map<this_type, result_type, arg1_type, MockAnyValue, arg3_type>(this, arg1, AnyValue::_, arg3) == true ||\
+        find_element_in_mocks_map<this_type, result_type, MockAnyValue, arg2_type, arg3_type>(this, AnyValue::_, arg2, arg3) == true ||\
+        find_element_in_mocks_map<this_type, result_type, arg1_type, MockAnyValue, MockAnyValue>(this, arg1, AnyValue::_, AnyValue::_) == true ||\
+        find_element_in_mocks_map<this_type, result_type, MockAnyValue, arg2_type, MockAnyValue>(this, AnyValue::_, arg2, AnyValue::_) == true ||\
+        find_element_in_mocks_map<this_type, result_type, MockAnyValue, MockAnyValue, arg3_type>(this, AnyValue::_, AnyValue::_, arg3) == true ||\
+        find_element_in_mocks_map<this_type, result_type, MockAnyValue, MockAnyValue, MockAnyValue>(this, AnyValue::_, AnyValue::_, AnyValue::_) == true) {\
       return;\
     }\
     SET_TEST_FAILED();\
@@ -414,6 +414,76 @@ bool find_element_in_mocks_map_##_name_(OT* object, AT1 arg1, AT2 arg2, AT3 arg3
             MockAnyValue,\
             MockAnyValue,\
             MockAnyValue)
+
+#define FIND_ELEMENT_IN_MOCKS_MAP4(_name_)\
+template <typename OT, typename RT, typename AT1, typename AT2, typename AT3, typename AT4>\
+bool find_element_in_mocks_map(OT* object, AT1 arg1, AT2 arg2, AT3 arg3, AT4 arg4) {\
+  auto funptr = static_cast<RT(OT::*)(AT1, AT2, AT3, AT4)>(&OT::_name_);\
+  auto iter = g_map<OT, AT1, AT2, AT3, AT4>.find(object);\
+  if (iter == g_map<OT, AT1, AT2, AT3, AT4>.end()) {\
+    return false;\
+  }\
+  auto elem = std::find_if(std::begin(iter->second),\
+                           std::end(iter->second),\
+                           [funptr, arg1, arg2, arg3, arg4](const auto& tuple) -> bool {\
+                             return std::get<1>(tuple) == funptr &&\
+                                    std::get<2>(tuple) == arg1 &&\
+                                    std::get<3>(tuple) == arg2 &&\
+                                    std::get<4>(tuple) == arg3 &&\
+                                    std::get<5>(tuple) == arg4;\
+                           });\
+  if (elem == iter->second.end()) {\
+    return false;\
+  }\
+  iter->second.erase(elem);\
+  return true;\
+}
+
+#define MOCK_BODY4(_name_, _result_type_, _arg1_type_, _arg2_type_, _arg3_type_, _arg4_type_)\
+  void MOCK_##_name_(_arg1_type_ arg1, _arg2_type_ arg2, _arg3_type_ arg3, _arg4_type_ arg4) {\
+    using this_type = std::remove_reference<decltype(*this)>::type;\
+    auto funptr = static_cast<_result_type_(this_type::*)(_arg1_type_, _arg2_type_, _arg3_type_, _arg4_type_)>(&this_type::_name_);\
+    auto iter = g_map<this_type, _arg1_type_, _arg2_type_, _arg3_type_, _arg4_type_>.find(this);\
+    if (iter == g_map<this_type, _arg1_type_, _arg2_type_, _arg3_type_, _arg4_type_>.end()) {\
+      std::vector<std::tuple<std::string, decltype(funptr), _arg1_type_, _arg2_type_, _arg3_type_, _arg4_type_>> vec;\
+      vec.push_back(std::make_tuple(getNameForType<this_type>() + "::" + #_name_, funptr, arg1, arg2, arg3, arg4));\
+      g_map<this_type, _arg1_type_, _arg2_type_, _arg3_type_, _arg4_type_>[this] = vec;\
+    } else {\
+      iter->second.push_back(std::make_tuple(getNameForType<this_type>() + "::" + #_name_, funptr, arg1, arg2, arg3, arg4));\
+    }\
+  }
+
+#define MOCK_METHOD4(_name_, _type_)\
+  MockMapChecker<CLASS_TYPE,\
+                 function_traits<std::function<_type_>>::arg<0>::type,\
+                 function_traits<std::function<_type_>>::arg<1>::type,\
+                 function_traits<std::function<_type_>>::arg<2>::type,\
+                 function_traits<std::function<_type_>>::arg<3>::type> UNIQUE_NAME;\
+  FIND_ELEMENT_IN_MOCKS_MAP4(_name_)\
+  function_traits<std::function<_type_>>::result_type _name_(\
+      function_traits<std::function<_type_>>::arg<0>::type arg1,\
+      function_traits<std::function<_type_>>::arg<1>::type arg2,\
+      function_traits<std::function<_type_>>::arg<2>::type arg3,\
+      function_traits<std::function<_type_>>::arg<3>::type arg4) override {\
+    using this_type = std::remove_reference<decltype(*this)>::type;\
+    using arg1_type = decltype(arg1);\
+    using arg2_type = decltype(arg2);\
+    using arg3_type = decltype(arg3);\
+    using arg4_type = decltype(arg4);\
+    using result_type = function_traits<std::function<_type_>>::result_type;\
+    if (find_element_in_mocks_map<this_type, result_type, arg1_type, arg2_type, arg3_type, arg4_type>(this, arg1, arg2, arg3, arg4) == true) {\
+      return;\
+    }\
+    SET_TEST_FAILED();\
+    std::cerr << "Not expected mock function called:" << getNameForType<this_type>() << "::" << #_name_ << std::endl;\
+    std::cerr << "with values: " << arg1 << " ; " << arg2 << " ; " << arg3 << " ; " << arg4 << std::endl << std::endl;\
+  }\
+  MOCK_BODY4(_name_,\
+            function_traits<std::function<_type_>>::result_type,\
+            function_traits<std::function<_type_>>::arg<0>::type,\
+            function_traits<std::function<_type_>>::arg<1>::type,\
+            function_traits<std::function<_type_>>::arg<2>::type,\
+            function_traits<std::function<_type_>>::arg<3>::type)
 
 #define EXPECT_CALL(obj, fun) obj.MOCK_##fun
 #endif  // MOCK_H
