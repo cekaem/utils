@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -97,12 +98,33 @@ void VerifyIsEqual(const T* ptr1, const T* ptr2, int line) {
   }
 }
 
+void VerifyStringsEqual(const char* str1, const char* str2, int line) {
+  if (std::string(str1) != std::string(str2)) {
+    Test::error_line_ = line;
+    std::stringstream ss;
+    ss << str1 << " vs " << str2;
+    Test::SetErrorMessage(ss.str());
+    throw Test::TestFailedException();
+  }
+}
+
 template <typename T>
 void VerifyIsNull(const T* ptr1, int line) {
   if (ptr1 != nullptr) {
     Test::error_line_ = line;
     std::stringstream ss;
     ss << "Pointer is not null: " << ptr1;
+    Test::SetErrorMessage(ss.str());
+    throw Test::TestFailedException();
+  }
+}
+
+template <typename T>
+void VerifyIsNotNull(const T* ptr1, int line) {
+  if (ptr1 == nullptr) {
+    Test::error_line_ = line;
+    std::stringstream ss;
+    ss << "Pointer is null.";
     Test::SetErrorMessage(ss.str());
     throw Test::TestFailedException();
   }
@@ -151,9 +173,11 @@ void VerifyDoesNotContain(const std::vector<T>& vec, const T& value, int line) {
 #define VERIFY_FALSE(expr) test.Verify(expr == false, __LINE__)
 #define VERIFY_IS_EQUAL(expr1, expr2) VerifyIsEqual(expr1, expr2, __LINE__)
 #define VERIFY_EQUALS(expr1, expr2) VerifyIsEqual(expr1, expr2, __LINE__)
+#define VERIFY_STRINGS_EQUAL(expr1, expr2) VerifyStringsEqual(expr1, expr2, __LINE__)
 #define VERIFY_CONTAINS(container, value) VerifyContains(container, value, __LINE__)
 #define VERIFY_DOES_NOT_CONTAIN(container, value) VerifyDoesNotContain(container, value, __LINE__)
 #define VERIFY_IS_NULL(ptr) VerifyIsNull(ptr, __LINE__)
+#define VERIFY_IS_NOT_NULL(ptr) VerifyIsNotNull(ptr, __LINE__)
 #define VERIFY_IS_ZERO(expr) VERIFY_IS_EQUAL(expr, 0)
 #define SET_TEST_FAILED() Test::current_test_status_ = Test::TEST_FAILED;
 

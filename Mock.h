@@ -52,6 +52,7 @@ class MockMapChecker {
         std::cerr << std::endl << std::endl;
       }
     }
+    g_map<T, ARGS...>.clear();
   }
 };
 
