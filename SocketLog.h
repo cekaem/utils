@@ -16,10 +16,12 @@ class SocketLog {
 
   template<typename T>
   SocketLog& operator<<(const T& t) {
-    buffer_empty_mutex_.lock();
-    buffer_ << t;
-    buffer_empty_mutex_.unlock();
-    buffer_not_empty_cv_.notify_one();
+    if (socket_fd_ != -1) {
+      buffer_empty_mutex_.lock();
+      buffer_ << t;
+      buffer_empty_mutex_.unlock();
+      buffer_not_empty_cv_.notify_one();
+    }
     return *this;
   }
 
@@ -28,24 +30,32 @@ class SocketLog {
   }
 
   static SocketLog& endl(SocketLog& l) {
-    l << '\n';
-    l.mutex_.unlock();
+    if (l.socket_fd_ != -1) {
+      l << '\n';
+      l.mutex_.unlock();
+    }
     return l;
   }
 
   static SocketLog& lock(SocketLog& l) {
-    l.mutex_.lock();
+    if (l.socket_fd_ != -1) {
+      l.mutex_.lock();
+    }
     return l;
   }
 
   static SocketLog& unlock(SocketLog& l) {
-    l.mutex_.unlock();
+    if (l.socket_fd_ != -1) {
+      l.mutex_.unlock();
+    }
     return l;
   }
 
   static SocketLog& endLogging(SocketLog& l) {
     l.end_logging_ = true;
-    l.buffer_not_empty_cv_.notify_one();
+    if (l.socket_fd_ != -1) {
+      l.buffer_not_empty_cv_.notify_one();
+    }
     return l;
   }
 
