@@ -10,14 +10,12 @@ namespace utils {
 
 class SocketLog {
  public:
-  using SocketLogManipulator = Log&(*)(Log&);
-
-  ~SocketLog();
+  using SocketLogManipulator = SocketLog&(*)(SocketLog&);
 
   void waitForClient(unsigned port);
 
   template<typename T>
-  Log& operator<<(const T& t) {
+  SocketLog& operator<<(const T& t) {
     buffer_empty_mutex_.lock();
     buffer_ << t;
     buffer_empty_mutex_.unlock();
@@ -25,23 +23,29 @@ class SocketLog {
     return *this;
   }
 
-  Log& operator<<(LogManipulator manip) {
+  SocketLog& operator<<(SocketLogManipulator manip) {
     return manip(*this);
   }
 
-  static Log& endl(Log& l) {
+  static SocketLog& endl(SocketLog& l) {
     l << '\n';
     l.mutex_.unlock();
     return l;
   }
 
-  static Log& lock(Log& l) {
+  static SocketLog& lock(SocketLog& l) {
     l.mutex_.lock();
     return l;
   }
 
-  static Log& unlock(Log& l) {
+  static SocketLog& unlock(SocketLog& l) {
     l.mutex_.unlock();
+    return l;
+  }
+
+  static SocketLog& endLogging(SocketLog& l) {
+    l.end_logging_ = true;
+    l.buffer_not_empty_cv_.notify_one();
     return l;
   }
 
@@ -53,6 +57,7 @@ class SocketLog {
   std::mutex buffer_empty_mutex_;
   std::mutex mutex_;
   int socket_fd_{-1};
+  bool end_logging_{false};
 };
 
 }  // namesapce utils

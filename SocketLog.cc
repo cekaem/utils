@@ -1,6 +1,7 @@
 #include "SocketLog.h"
 
 #include <thread>
+#include <unistd.h>
 
 #include "Socket.h"
 
@@ -14,17 +15,18 @@ void SocketLog::waitForClient(unsigned port) {
 }
 
 void SocketLog::loggerMain() {
-  std::string welcome_message("Logger started.\n");
+  std::string welcome_message("Logging started.\n");
   ::write(socket_fd_, welcome_message.c_str(), welcome_message.size());
-  while (1) {
+  while (end_logging_ == false) {
     std::unique_lock<std::mutex> ul(buffer_empty_mutex_);
-    buffer_not_empty_cv_.wait(ul, [buffer_] { return buffer_.str().empty() == false; });
-    mutex_.lock();
+    buffer_not_empty_cv_.wait(ul, [this] { return buffer_.str().empty() == false || end_logging_ == true; });
     std::string message = buffer_.str();
     buffer_.str(std::string());
-    mutex_.unlock();
-    ::write(socket_fd_, buffer_.c_str(), buffer.size());
+    ::write(socket_fd_, message.c_str(), message.size());
   }
+  std::string end_message("Logging ended.\n");
+  ::write(socket_fd_, end_message.c_str(), end_message.size());
+  close(socket_fd_);
 }
 
 }  // namespace utils
