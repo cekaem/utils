@@ -4,6 +4,8 @@
 #include <exception>
 #include <string>
 
+namespace utils {
+
 class Socket {
  public:
   struct SocketException : std::exception {
@@ -11,12 +13,15 @@ class Socket {
     const std::string error_message;
   };
 
-  Socket(unsigned port);
+  Socket(unsigned port) : port_(port) {}
   ~Socket();
-  void write(const std::string& str);
+  int acceptConnection();
 
  private:
-  int socket_descriptor_{-1};
+  unsigned port_{0};
+  int socket_fd_{-1};
 };
+
+}  // namespace utils
 
 #endif  // SOCKET_H
