@@ -7,9 +7,20 @@
 
 namespace utils {
 
+SocketLog::~SocketLog() {
+  endLogging(*this);
+  std::unique_lock<std::mutex> ul(logging_ended_mutex_);
+  logging_ended_cv_.wait(ul, [this] { return logging_ended_ == true; });
+}
+
 void SocketLog::waitForClient(unsigned port) {
   Socket socket(port);
-  socket_fd_ = socket.acceptConnection();
+  try {
+    socket_fd_ = socket.acceptConnection();
+  } catch (const Socket::SocketException& e) {
+    throw e;
+  }
+  logging_ended_ = false;
   std::thread t(&SocketLog::loggerMain, this);
   t.detach();
 }
@@ -27,6 +38,9 @@ void SocketLog::loggerMain() {
   std::string end_message("Logging ended.\n");
   ::write(socket_fd_, end_message.c_str(), end_message.size());
   close(socket_fd_);
+  std::unique_lock<std::mutex> ul(logging_ended_mutex_);
+  logging_ended_ = true;
+  logging_ended_cv_.notify_one();
 }
 
 }  // namespace utils

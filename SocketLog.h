@@ -12,6 +12,8 @@ class SocketLog {
  public:
   using SocketLogManipulator = SocketLog&(*)(SocketLog&);
 
+  ~SocketLog();
+
   void waitForClient(unsigned port);
 
   template<typename T>
@@ -68,6 +70,9 @@ class SocketLog {
   std::mutex mutex_;
   int socket_fd_{-1};
   bool end_logging_{false};
+  bool logging_ended_{true};
+  std::mutex logging_ended_mutex_;
+  std::condition_variable logging_ended_cv_;
 };
 
 }  // namesapce utils
