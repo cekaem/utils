@@ -6,6 +6,7 @@ namespace utils {
 
 bool str_2_uint(const std::string& str, unsigned& result);
 void ltrim(std::string& str);
+unsigned getMemoryUsageOfCurrentProcess();
 
 }  // namespace utils
 
