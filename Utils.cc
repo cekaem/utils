@@ -3,8 +3,23 @@
 #include <algorithm>
 #include <exception>
 #include <sstream>
+#include <stdio.h>
 #include <string>
 
+namespace {
+
+class FileDescriptorWrapper {
+ public:
+  FileDescriptorWrapper(FILE* desc) : desc_(desc) {}
+  ~FileDescriptorWrapper() {
+    fclose(desc_);
+  }
+
+ private:
+  FILE* desc_{nullptr};
+};
+
+}  // unnamed namespace
 
 namespace utils {
 
@@ -26,6 +41,7 @@ unsigned getMemoryUsageOfCurrentProcess() {
   if (desc == nullptr) {
     throw std::runtime_error("Can't open /proc/self/status");
   }
+  FileDescriptorWrapper wrapper(desc);
   char buff[128];
   while (fgets(buff, 128, desc) != nullptr) {
     std::string line(buff);
