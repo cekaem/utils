@@ -29,11 +29,11 @@ unsigned getMemoryUsageOfCurrentProcess() {
   char buff[128];
   while (fgets(buff, 128, desc) != nullptr) {
     std::string line(buff);
-    auto pos = line.find("VmSize:");
+    auto pos = line.find("VmRSS:");
     if (pos != 0) {
       continue;
     }
-    std::string sub = line.substr(7);  // 7 == strlen("VmSize:")
+    std::string sub = line.substr(6);  // 6 == strlen("VmRSS:")
     utils::ltrim(sub);
     pos = sub.find(" kB");
     if (pos == std::string::npos) {
