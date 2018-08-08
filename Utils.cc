@@ -61,7 +61,7 @@ unsigned getMemoryUsageOfCurrentProcess() {
     }
   }
   if (memory_consumption == 0) {
-    throw std::runtime_error("No information about VmSize in /proc/self/status");
+    throw std::runtime_error("No information about VmRSS in /proc/self/status");
   }
   return memory_consumption;
 }

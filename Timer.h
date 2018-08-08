@@ -28,7 +28,7 @@ class Timer {
   }
 
  private:
-  void timerMain(unsigned time_ms,  std::function<void()> callback) {
+  void timerMain(unsigned time_ms, std::function<void()> callback) {
     std::mutex m;
     std::unique_lock ul(m);
     using namespace std::chrono_literals;
