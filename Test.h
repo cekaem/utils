@@ -37,7 +37,6 @@ class Test {
     if (is_ok == true) {
       std::cout << "OK" << std::endl;
     } else {
-      ++number_of_failed_tests_;
       std::cout << "FAILED (line: " << error_line_ << ")" << std::endl;
       if (!error_message_.empty()) {
         std::cout << "Error message: " << error_message_ << std::endl;
@@ -50,10 +49,6 @@ class Test {
     error_message_ = error_message;
   }
 
-  static int get_number_of_failed_tests() {
-    return number_of_failed_tests_;
-  }
-
   void Verify(bool expr, int line) {
     if (!expr) {
       error_line_ = line;
@@ -63,7 +58,6 @@ class Test {
 
   static int error_line_;
   static std::string error_message_;
-  static int number_of_failed_tests_;
   static bool current_test_status_;
 };
 

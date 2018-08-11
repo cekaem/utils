@@ -4,7 +4,6 @@
 
 int Test::error_line_ = 0;
 std::string Test::error_message_;
-int Test::number_of_failed_tests_ = 0;
 bool Test::current_test_status_ = true;
 
 std::map<std::string, bool(*)()>* TestProceduresMapAdder::g_test_procedures{nullptr};
@@ -28,10 +27,15 @@ int main(int argc, char* argv[]) {
   for (auto& iter: *TestProceduresMapAdder::g_test_procedures) {
     if (argc == 1 || (argc == 2 && iter.first == argv[1])) {
       bool result = (*iter.second)();
+      std::cout << iter.first << ": " << (result == true ? "OK" : "FAILED") << std::endl;
       if (result == false) {
         ++number_of_failed_tests;
+        std::cout << "line: " << Test::error_line_ << std::endl;
+        if (!Test::error_message_.empty()) {
+          std::cout << "Error message: " << Test::error_message_ << std::endl;
+        }
+        std::cout << std::endl;
       }
-      std::cout << iter.first << ": " << (result == true ? "OK" : "FAILED") << std::endl;
     }
   }
   std::cout << std::endl;
