@@ -74,10 +74,6 @@ std::ostream& operator<<(std::ostream& ostr, const MockAnyValue&) {
   return ostr;
 }
 
-#define CONC2(s1, s2) s1 ## s2
-#define CONC(s1, s2) CONC2(s1, s2)
-#define UNIQUE_NAME CONC(UN_, __COUNTER__)
-
 #define MOCK_CLASS(_NAME_) using CLASS_TYPE = _NAME_;
 
 #define MOCK_METHOD0(_name_, _type_)\

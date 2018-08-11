@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -25,20 +26,15 @@ class Test {
   struct TestFailedException {};
   struct EndTestException {};
 
-  enum TestResult {
-    TEST_OK,
-    TEST_FAILED
-  };
-
   Test() {
     error_line_ = 0;
     error_message_.clear();
-    current_test_status_ = TEST_OK;
+    current_test_status_ = true;
   }
 
-  static void Check(const char* name, TestResult is_ok) {
+  static void Check(const char* name, bool is_ok) {
     std::cout << name << ": ";
-    if (is_ok == TEST_OK) {
+    if (is_ok == true) {
       std::cout << "OK" << std::endl;
     } else {
       ++number_of_failed_tests_;
@@ -68,13 +64,10 @@ class Test {
   static int error_line_;
   static std::string error_message_;
   static int number_of_failed_tests_;
-  static TestResult current_test_status_;
+  static bool current_test_status_;
 };
 
-int Test::error_line_ = 0;
-std::string Test::error_message_;
-int Test::number_of_failed_tests_ = 0;
-Test::TestResult Test::current_test_status_ = Test::TEST_OK;
+void VerifyStringsEqual(const char* str1, const char* str2, int line);
 
 template <typename T>
 void VerifyIsEqual(const T& expr1, const T& expr2, int line) {
@@ -93,16 +86,6 @@ void VerifyIsEqual(const T* ptr1, const T* ptr2, int line) {
     Test::error_line_ = line;
     std::stringstream ss;
     ss << ptr1 << " vs " << ptr2;
-    Test::SetErrorMessage(ss.str());
-    throw Test::TestFailedException();
-  }
-}
-
-void VerifyStringsEqual(const char* str1, const char* str2, int line) {
-  if (std::string(str1) != std::string(str2)) {
-    Test::error_line_ = line;
-    std::stringstream ss;
-    ss << str1 << " vs " << str2;
     Test::SetErrorMessage(ss.str());
     throw Test::TestFailedException();
   }
@@ -160,9 +143,26 @@ void VerifyDoesNotContain(const std::vector<T>& vec, const T& value, int line) {
   }
 }
 
-#define TEST_PROCEDURE(T) Test::TestResult T()
+class TestProceduresMapAdder {
+ public:
+  static std::map<std::string, bool(*)()>* g_test_procedures;
 
-#define TEST(str, fun) Test::Check(str, fun())
+  TestProceduresMapAdder(const std::string& name, bool(*ptr)()) {
+    static std::map<std::string, bool(*)()> test_procedures;
+    g_test_procedures = &test_procedures;
+    test_procedures[name] = ptr;
+  }
+};
+
+#define CONC2(s1, s2) s1 ## s2
+#define CONC(s1, s2) CONC2(s1, s2)
+#define UNIQUE_NAME CONC(UN_, __COUNTER__)
+
+
+#define TEST_PROCEDURE(T)\
+  bool T();\
+  TestProceduresMapAdder UNIQUE_NAME(#T, &T);\
+  bool T()
 
 #define TEST_START \
   try { \
@@ -179,12 +179,12 @@ void VerifyDoesNotContain(const std::vector<T>& vec, const T& value, int line) {
 #define VERIFY_IS_NULL(ptr) VerifyIsNull(ptr, __LINE__)
 #define VERIFY_IS_NOT_NULL(ptr) VerifyIsNotNull(ptr, __LINE__)
 #define VERIFY_IS_ZERO(expr) VERIFY_IS_EQUAL(expr, 0)
-#define SET_TEST_FAILED() Test::current_test_status_ = Test::TEST_FAILED;
+#define SET_TEST_FAILED() Test::current_test_status_ = false;
 
 #define TEST_END \
   }\
   catch (Test::TestFailedException& except) {\
-    return Test::TEST_FAILED;\
+    return false;\
   }\
   catch (Test::EndTestException& e) {\
   }\
