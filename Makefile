@@ -19,8 +19,8 @@ $(OBJ_DIR)/socket_test.o: socket_test.cc Socket.h
 $(BIN_DIR)/timer_test: timer_test.cc Timer.h
 	$(CXX) $(CFLAGS) -o $(BIN_DIR)/timer_test timer_test.cc -lpthread
 
-$(BIN_DIR)/test_test: test_test.cc Test.h $(OBJ_DIR)/Test.o $(OBJ_DIR)/test_test.o
-	$(CXX) $(CFLAGS) -o $(BIN_DIR)/test_test $(OBJ_DIR)/Test.o $(OBJ_DIR)/test_test.o
+$(BIN_DIR)/test_test: test_test.cc Test.h $(OBJ_DIR)/Test.o $(OBJ_DIR)/test_test.o $(OBJ_DIR)/CommandLineParser.o
+	$(CXX) $(CFLAGS) -o $(BIN_DIR)/test_test $(OBJ_DIR)/Test.o $(OBJ_DIR)/test_test.o $(OBJ_DIR)/CommandLineParser.o
 
 $(BIN_DIR)/command_line_parser_tests: $(OBJ_DIR)/Test.o $(OBJ_DIR)/CommandLineParser_t.o $(OBJ_DIR)/CommandLineParser.o
 	$(CXX) $(CFLAGS) -o $(BIN_DIR)/command_line_parser_tests $(OBJ_DIR)/Test.o $(OBJ_DIR)/CommandLineParser_t.o $(OBJ_DIR)/CommandLineParser.o
@@ -31,7 +31,7 @@ $(OBJ_DIR)/CommandLineParser_t.o: CommandLineParser_t.cc CommandLineParser.h
 $(OBJ_DIR)/CommandLineParser.o: CommandLineParser.cc CommandLineParser.h
 	$(CXX) $(CFLAGS) -c -o $(OBJ_DIR)/CommandLineParser.o CommandLineParser.cc
 
-$(OBJ_DIR)/Test.o: Test.cc Test.h
+$(OBJ_DIR)/Test.o: Test.cc Test.h CommandLineParser.h
 	$(CXX) $(CFLAGS) -c -o $(OBJ_DIR)/Test.o Test.cc
 
 $(OBJ_DIR)/test_test.o: test_test.cc Test.h
