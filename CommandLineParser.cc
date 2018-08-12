@@ -3,6 +3,7 @@
 #include <string>
 #include <cassert>
 #include <cstring>
+#include <memory>
 #include <sstream>
 
 using namespace std;
@@ -22,16 +23,8 @@ T ConvertString(const char* str) {
 }  // unnamed namespace
 
 
-CommandLineParser::~CommandLineParser() {
-  while (parameters_.size()) {
-    Parameter* parameter = parameters_.back();
-    parameters_.pop_back();
-    delete parameter;
-  }
-}
-
 void CommandLineParser::CheckIfDoesNotExist(char parameter) {
-  for (const auto* param: parameters_) {
+  for (const auto& param: parameters_) {
     if (param->parameter == parameter) {
       throw CommandLineParserParameterExistsException(parameter);
     }
@@ -39,9 +32,9 @@ void CommandLineParser::CheckIfDoesNotExist(char parameter) {
 }
 
 CommandLineParser::Parameter* CommandLineParser::getParameter(char parameter) {
-  for (auto* param: parameters_) {
+  for (auto& param: parameters_) {
     if (param->parameter == parameter) {
-      return param;
+      return param.get();
     }
   }
   throw CommandLineParserUnknownParameterException(parameter);
@@ -61,22 +54,22 @@ bool CommandLineParser::IsLetter(char c) {
 
 void CommandLineParser::addBinaryParameter(char parameter, bool mandatory) {
   CheckIfDoesNotExist(parameter);
-  parameters_.push_back(new BinaryParameter(parameter, mandatory));
+  parameters_.push_back(std::make_unique<BinaryParameter>(parameter, mandatory));
 }
 
 void CommandLineParser::addIntegerParameter(char parameter, int default_value, bool mandatory) {
   CheckIfDoesNotExist(parameter);
-  parameters_.push_back(new IntegerParameter(parameter, mandatory, default_value));
+  parameters_.push_back(std::make_unique<IntegerParameter>(parameter, mandatory, default_value));
 }
 
 void CommandLineParser::addFloatParameter(char parameter, double default_value, bool mandatory) {
   CheckIfDoesNotExist(parameter);
-  parameters_.push_back(new FloatParameter(parameter, mandatory, default_value));
+  parameters_.push_back(std::make_unique<FloatParameter>(parameter, mandatory, default_value));
 }
 
 void CommandLineParser::addStringParameter(char parameter, const string& default_value, bool mandatory) {
   CheckIfDoesNotExist(parameter);
-  parameters_.push_back(new StringParameter(parameter, mandatory, default_value));
+  parameters_.push_back(std::make_unique<StringParameter>(parameter, mandatory, default_value));
 }
 
 bool CommandLineParser::getBinaryValue(char param) {
@@ -153,7 +146,7 @@ void CommandLineParser::parse(int argc, const char** argv) {
       }
     }
   }
-  for (const auto* param: parameters_) {
+  for (const auto& param: parameters_) {
     if (param->mandatory == true && param->is_set == false) {
       throw CommandLineParserMandatoryParameterNotSetException(param->parameter);
     }

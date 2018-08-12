@@ -1,6 +1,7 @@
 #ifndef COMMAND_LINE_PARSER_H
 #define COMMAND_LINE_PARSER_H
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -75,7 +76,6 @@ public:
   };
 
   CommandLineParser() : last_parameter_mandatory_(false) {}
-  ~CommandLineParser();
   void addBinaryParameter(char parameter,
                           bool mandatory = false);
   void addIntegerParameter(char parameter,
@@ -133,8 +133,7 @@ private:
   {
     FloatParameter(char parameter, bool mandatory, double default_value) :
       Parameter(parameter, mandatory, ParameterType::FLOAT),
-      value(default_value)
-    {}
+      value(default_value) {}
     double value;
   };
 
@@ -142,9 +141,8 @@ private:
   {
     StringParameter(char parameter, bool mandatory, const std::string& default_value) :
       Parameter(parameter, mandatory, ParameterType::STRING),
-      value(default_value)
-    {}
-    ~StringParameter() { value.clear(); }
+      value(default_value) {}
+
     std::string value;
   };
 
@@ -153,7 +151,7 @@ private:
   Parameter* getParameter(char parameter, ParameterType type);
   bool IsLetter(char c);
 
-  std::vector<Parameter*> parameters_;
+  std::vector<std::unique_ptr<Parameter>> parameters_;
   std::string last_parameter_;
   bool last_parameter_mandatory_;
 };
