@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+#include "CommandLineParser.h"
+
+
 int Test::error_line_ = 0;
 std::string Test::error_message_;
 bool Test::current_test_status_ = true;
@@ -20,6 +23,7 @@ void VerifyStringsEqual(const char* str1, const char* str2, int line) {
 
 
 int main(int argc, char* argv[]) {
+  //CommandLineParser parser;
   int number_of_failed_tests = 0u;
   if (TestProceduresMapAdder::g_test_procedures == nullptr) {
     return 0;

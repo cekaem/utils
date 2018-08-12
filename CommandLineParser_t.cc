@@ -12,210 +12,210 @@ using namespace std;
 namespace {
 
 TEST_PROCEDURE(CommandLineParserParameterExistsExceptionIsThrown) {
-	TEST_START
-	CommandLineParser parser;
-	parser.AddBinaryParameter('d');
-	try {
-		parser.AddIntegerParameter('d', 0);
-	} catch (CommandLineParser::CommandLineParserParameterExistsException& e) {
-		VERIFY(e.parameter == 'd');
-		RETURN
-	}
+  TEST_START
+  CommandLineParser parser;
+  parser.addBinaryParameter('d');
+  try {
+    parser.addIntegerParameter('d', 0);
+  } catch (CommandLineParser::CommandLineParserParameterExistsException& e) {
+    VERIFY(e.parameter == 'd');
+    RETURN
+  }
   NOT_REACHED
-	TEST_END
+  TEST_END
 }
 
 TEST_PROCEDURE(UnknownParameterInCommandLineIsDetected) {
-	TEST_START
-	CommandLineParser parser;
-	const char* params[] = {"./prog", "-a"};
-	try {
-		parser.Parse(2, params);
-	} catch (CommandLineParser::CommandLineParserUnknownParameterException& e) {
-		VERIFY(e.parameter == 'a');
-		RETURN
-	}
+  TEST_START
+  CommandLineParser parser;
+  const char* params[] = {"./prog", "-a"};
+  try {
+    parser.parse(2, params);
+  } catch (CommandLineParser::CommandLineParserUnknownParameterException& e) {
+    VERIFY(e.parameter == 'a');
+    RETURN
+  }
   NOT_REACHED
-	TEST_END
+  TEST_END
 }
 
 TEST_PROCEDURE(ParserThrowsCommandLineParserUnknownParameterException) {
-	TEST_START
-	CommandLineParser parser;
-	parser.AddBinaryParameter('a');
-	const char* params[] = {"./prog", "-a"};
-	parser.Parse(2, params);
-	try {
-		parser.GetBinaryValue('b');
-	} catch (CommandLineParser::CommandLineParserUnknownParameterException& e) {
-		VERIFY(e.parameter == 'b');
-		RETURN
-	}
+  TEST_START
+  CommandLineParser parser;
+  parser.addBinaryParameter('a');
+  const char* params[] = {"./prog", "-a"};
+  parser.parse(2, params);
+  try {
+    parser.getBinaryValue('b');
+  } catch (CommandLineParser::CommandLineParserUnknownParameterException& e) {
+    VERIFY(e.parameter == 'b');
+    RETURN
+  }
   NOT_REACHED
-	TEST_END
+  TEST_END
 }
 
 TEST_PROCEDURE(LackOfMandatoryParameterIsDetected)
 {
-	TEST_START
-	CommandLineParser parser;
-	parser.AddBinaryParameter('a');
-	parser.AddStringParameter('s', "default_value", true);
-	const char* params[] = {"./prog", "-a"};
-	try {
-		parser.Parse(2, params);
-	} catch (CommandLineParser::CommandLineParserMandatoryParameterNotSetException& e) {
-		VERIFY(e.parameter == 's');
-		RETURN
-	}
+  TEST_START
+  CommandLineParser parser;
+  parser.addBinaryParameter('a');
+  parser.addStringParameter('s', "default_value", true);
+  const char* params[] = {"./prog", "-a"};
+  try {
+    parser.parse(2, params);
+  } catch (CommandLineParser::CommandLineParserMandatoryParameterNotSetException& e) {
+    VERIFY(e.parameter == 's');
+    RETURN
+  }
   NOT_REACHED
-	TEST_END
+  TEST_END
 }
 
 TEST_PROCEDURE(NotMandatoryParametersAreNotTreatedAsMandatory) {
-	TEST_START
-	CommandLineParser parser;
-	parser.AddBinaryParameter('a');
-	parser.AddStringParameter('s', "default_value");
-	const char* params[] = {"./prog", "-a"};
-	try {
-		parser.Parse(2, params);
-	} catch (CommandLineParser::CommandLineParserMandatoryParameterNotSetException& e) {
-		NOT_REACHED
-	}
-	TEST_END
+  TEST_START
+  CommandLineParser parser;
+  parser.addBinaryParameter('a');
+  parser.addStringParameter('s', "default_value");
+  const char* params[] = {"./prog", "-a"};
+  try {
+    parser.parse(2, params);
+  } catch (CommandLineParser::CommandLineParserMandatoryParameterNotSetException& e) {
+    NOT_REACHED
+  }
+  TEST_END
 }
 
 TEST_PROCEDURE(BadParameterTypeIsDetected) {
-	TEST_START
-	CommandLineParser parser;
-	parser.AddBinaryParameter('a');
-	try {
-		parser.GetIntegerValue('a');
-	} catch (CommandLineParser::CommandLineParserBadParameterTypeException& e) {
-		VERIFY(e.parameter == 'a');
-		RETURN
-	}
+  TEST_START
+  CommandLineParser parser;
+  parser.addBinaryParameter('a');
+  try {
+    parser.getIntegerValue('a');
+  } catch (CommandLineParser::CommandLineParserBadParameterTypeException& e) {
+    VERIFY(e.parameter == 'a');
+    RETURN
+  }
   NOT_REACHED
-	TEST_END
+  TEST_END
 }
 
 TEST_PROCEDURE(ParameterProvidedWithoutRequiredIntegerValueIsDetected) {
-	TEST_START
-	CommandLineParser parser;
-	parser.AddIntegerParameter('a');
-	const char* params[] = {"./prog", "-a"};
-	try {
-		parser.Parse(2, params);
-	} catch (CommandLineParser::CommandLineParserParameterNeedsValueException& e) {
-		VERIFY(e.parameter == 'a');
-		RETURN;
-	}
-	NOT_REACHED
-	TEST_END
+  TEST_START
+  CommandLineParser parser;
+  parser.addIntegerParameter('a');
+  const char* params[] = {"./prog", "-a"};
+  try {
+    parser.parse(2, params);
+  } catch (CommandLineParser::CommandLineParserParameterNeedsValueException& e) {
+    VERIFY(e.parameter == 'a');
+    RETURN;
+  }
+  NOT_REACHED
+  TEST_END
 }
 
 TEST_PROCEDURE(ParameterProvidedWithoutRequiredFloatValueIsDetected) {
-	TEST_START
-	CommandLineParser parser;
-	parser.AddFloatParameter('a');
-	const char* params[] = {"./prog", "-a"};
-	try {
-		parser.Parse(2, params);
-	} catch (CommandLineParser::CommandLineParserParameterNeedsValueException& e) {
-		VERIFY(e.parameter == 'a');
-		RETURN;
-	}
-	NOT_REACHED
-	TEST_END
+  TEST_START
+  CommandLineParser parser;
+  parser.addFloatParameter('a');
+  const char* params[] = {"./prog", "-a"};
+  try {
+    parser.parse(2, params);
+  } catch (CommandLineParser::CommandLineParserParameterNeedsValueException& e) {
+    VERIFY(e.parameter == 'a');
+    RETURN;
+  }
+  NOT_REACHED
+  TEST_END
 }
 
 TEST_PROCEDURE(ParameterProvidedWithoutRequiredStringValueIsDetected) {
-	TEST_START
-	CommandLineParser parser;
-	parser.AddStringParameter('a');
-	const char* params[] = {"./prog", "-a"};
-	try {
-		parser.Parse(2, params);
-	}
-	catch (CommandLineParser::CommandLineParserParameterNeedsValueException& e) {
-		VERIFY(e.parameter == 'a');
-		RETURN;
-	}
+  TEST_START
+  CommandLineParser parser;
+  parser.addStringParameter('a');
+  const char* params[] = {"./prog", "-a"};
+  try {
+    parser.parse(2, params);
+  }
+  catch (CommandLineParser::CommandLineParserParameterNeedsValueException& e) {
+    VERIFY(e.parameter == 'a');
+    RETURN;
+  }
   NOT_REACHED
-	TEST_END
+  TEST_END
 }
 
 TEST_PROCEDURE(ParseErrorInCommandLineIsDetected) {
-	TEST_START
-	CommandLineParser parser;
-	parser.AddBinaryParameter('a');
-	parser.AddBinaryParameter('b');
-	const char* params[] = {"./prog", "-a", "some_text", "-b"};
-	try {
-		parser.Parse(4, params);
-	} catch (CommandLineParser::CommandLineParserParseError& e) {
-		VERIFY(string(e.str) == "some_text");
-		RETURN;
-	}
-	NOT_REACHED
-	TEST_END
+  TEST_START
+  CommandLineParser parser;
+  parser.addBinaryParameter('a');
+  parser.addBinaryParameter('b');
+  const char* params[] = {"./prog", "-a", "some_text", "-b"};
+  try {
+    parser.parse(4, params);
+  } catch (CommandLineParser::CommandLineParserParseError& e) {
+    VERIFY(string(e.str) == "some_text");
+    RETURN;
+  }
+  NOT_REACHED
+  TEST_END
 }
 
-TEST_PROCEDURE(GetLastParameterStoresProperValue) {
-	TEST_START
-	CommandLineParser parser;
-	parser.AddBinaryParameter('a');
-	const char* params[] = {"./prog", "-a", "some_text"};
-	parser.Parse(3, params);
-	VERIFY(parser.GetLastParameter() == "some_text");
-	TEST_END
+TEST_PROCEDURE(getLastParameterStoresProperValue) {
+  TEST_START
+  CommandLineParser parser;
+  parser.addBinaryParameter('a');
+  const char* params[] = {"./prog", "-a", "some_text"};
+  parser.parse(3, params);
+  VERIFY(parser.getLastParameter() == "some_text");
+  TEST_END
 }
 
 TEST_PROCEDURE(LackOfMandatoryLastParameterIsDetected) {
-	TEST_START
-	CommandLineParser parser;
-	parser.SetLastParameterIsMandatory();
-	parser.AddBinaryParameter('a');
-	const char* params[] = {"./prog", "-a"};
-	try {
-		parser.Parse(2, params);
-	}	catch (CommandLineParser::CommandLineParserMandatoryParameterNotSetException& e) {
-		VERIFY(e.parameter == ' ');
-		RETURN
-	}
-	NOT_REACHED
-	TEST_END
+  TEST_START
+  CommandLineParser parser;
+  parser.setLastParameterIsMandatory();
+  parser.addBinaryParameter('a');
+  const char* params[] = {"./prog", "-a"};
+  try {
+    parser.parse(2, params);
+  }  catch (CommandLineParser::CommandLineParserMandatoryParameterNotSetException& e) {
+    VERIFY(e.parameter == ' ');
+    RETURN
+  }
+  NOT_REACHED
+  TEST_END
 }
 
 
 TEST_PROCEDURE(TestOfExamplaryComplexCommandLine) {
-	TEST_START
-	CommandLineParser parser;
+  TEST_START
+  CommandLineParser parser;
 
-	parser.AddIntegerParameter('a', 20);
-	parser.AddFloatParameter('b', 6.4f);
-	parser.AddStringParameter('c', "some_default_string");
-	parser.AddBinaryParameter('d');
-	parser.AddIntegerParameter('e', 5);
-	parser.AddFloatParameter('f', 40.3f);
-	parser.AddStringParameter('g', "default_string");
-	parser.AddBinaryParameter('h');
-	
-	const char* params[] = {"./prog", "-a", "10", "-b", "5.1", "-c", "some_string", "-d", "last_string"};
-	parser.Parse(9, params);
+  parser.addIntegerParameter('a', 20);
+  parser.addFloatParameter('b', 6.4f);
+  parser.addStringParameter('c', "some_default_string");
+  parser.addBinaryParameter('d');
+  parser.addIntegerParameter('e', 5);
+  parser.addFloatParameter('f', 40.3f);
+  parser.addStringParameter('g', "default_string");
+  parser.addBinaryParameter('h');
+  
+  const char* params[] = {"./prog", "-a", "10", "-b", "5.1", "-c", "some_string", "-d", "last_string"};
+  parser.parse(9, params);
 
-	VERIFY(parser.GetIntegerValue('a') == 10);
-	VERIFY(static_cast<float>(parser.GetFloatValue('b')) == 5.1f);
-	VERIFY(parser.GetStringValue('c') == "some_string");
-	VERIFY(parser.GetBinaryValue('d') == true);
-	VERIFY(parser.GetIntegerValue('e') == 5);
-	VERIFY(static_cast<float>(parser.GetFloatValue('f')) == 40.3f);
-	VERIFY(parser.GetStringValue('g') == "default_string");
-	VERIFY(parser.GetBinaryValue('h') == false);
-	VERIFY(parser.GetLastParameter() == "last_string");
+  VERIFY(parser.getIntegerValue('a') == 10);
+  VERIFY(static_cast<float>(parser.getFloatValue('b')) == 5.1f);
+  VERIFY(parser.getStringValue('c') == "some_string");
+  VERIFY(parser.getBinaryValue('d') == true);
+  VERIFY(parser.getIntegerValue('e') == 5);
+  VERIFY(static_cast<float>(parser.getFloatValue('f')) == 40.3f);
+  VERIFY(parser.getStringValue('g') == "default_string");
+  VERIFY(parser.getBinaryValue('h') == false);
+  VERIFY(parser.getLastParameter() == "last_string");
 
-	TEST_END
+  TEST_END
 }
 
 } // unnamed namespace
