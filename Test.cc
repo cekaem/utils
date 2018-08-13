@@ -91,7 +91,7 @@ int main(int argc, const char* argv[]) {
     }
   }
   std::cout << std::endl;
-  if (tests_to_launch.empty() == false && number_of_failed_tests == 0) {
+  if (number_of_failed_tests == 0) {
     std::cout << "All tests passed." << std::endl;
   } else if (number_of_failed_tests > 0) {
     std::cout << number_of_failed_tests << " failed." << std::endl;
