@@ -1,8 +1,8 @@
 #include "Test.h"
 
+#include <algorithm>
 #include <iostream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "CommandLineParser.h"
@@ -25,22 +25,12 @@ void VerifyStringsEqual(const char* str1, const char* str2, int line) {
 
 namespace {
 
-std::vector<std::pair<std::string, bool(*)()>> generateListOfTestsToLaunch(std::string tests) {
-  std::vector<std::pair<std::string, bool(*)()>> result;
-  if (TestProceduresMapAdder::g_test_procedures == nullptr) {
-    return result;
-  }
-  if (tests.empty() == true) {
-    for (const auto& test_procedure: *TestProceduresMapAdder::g_test_procedures) {
-      result.push_back(std::make_pair(test_procedure.first, test_procedure.second));
-    }
-    return result;
-  }
+std::vector<std::string> extractTestsToLaunchFromString(std::string tests) {
+  std::vector<std::string> tests_to_launch;
 
-  std::vector<std::string> tests_from_cmd;
   auto pos = std::string::npos;
   while ((pos = tests.find(':')) != std::string::npos) {
-    tests_from_cmd.push_back(tests.substr(0, pos));
+    tests_to_launch.push_back(tests.substr(0, pos));
     if (tests.size() == pos) {
       tests.clear();
     } else {
@@ -48,16 +38,10 @@ std::vector<std::pair<std::string, bool(*)()>> generateListOfTestsToLaunch(std::
     }
   }
   if (tests.empty() == false) {
-    tests_from_cmd.push_back(tests);
+    tests_to_launch.push_back(tests);
   }
 
-  for (const auto& test: tests_from_cmd) {
-    auto iter = TestProceduresMapAdder::g_test_procedures->find(test);
-    if (iter != TestProceduresMapAdder::g_test_procedures->end()) {
-      result.push_back(std::make_pair(iter->first, iter->second));
-    }
-  }
-  return result;
+  return tests_to_launch;
 }
 
 
@@ -71,6 +55,7 @@ int main(int argc, const char* argv[]) {
     CommandLineParser parser;
     parser.addIntegerParameter('c', 1);
     parser.addStringParameter('t');
+    parser.setLastParameterIsNotAllowed();
     parser.parse(argc, argv);
     repeat_time = parser.getIntegerValue('c');
     tests_to_launch_str = parser.getStringValue('t');
@@ -78,11 +63,21 @@ int main(int argc, const char* argv[]) {
     std::cerr << "Usage: " << argv[0] << " [-c repeat_time] [-t tests_to_launch]" << std::endl;
     return -1;
   }
+  if (TestProceduresMapAdder::g_test_procedures == nullptr) {
+    return 0;
+  } 
 
-  auto tests_to_launch = generateListOfTestsToLaunch(tests_to_launch_str);
+  auto tests_to_launch = extractTestsToLaunchFromString(tests_to_launch_str);
   int number_of_failed_tests = 0u;
   for (int i = 0; i < repeat_time; ++i) {
-    for (auto& iter: tests_to_launch) {
+    for (auto& iter: *TestProceduresMapAdder::g_test_procedures) {
+      if (tests_to_launch.empty() == false) {
+        if (std::find(std::begin(tests_to_launch),
+                      std::end(tests_to_launch),
+                      iter.first) == std::end(tests_to_launch)) {
+          continue;
+        }
+      }
       bool result = (*iter.second)();
       std::cout << iter.first << ": " << (result == true ? "OK" : "FAILED") << std::endl;
       if (result == false) {

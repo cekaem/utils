@@ -154,4 +154,7 @@ void CommandLineParser::parse(int argc, const char** argv) {
   if (last_parameter_mandatory_ && !last_parameter_.length()) {
     throw CommandLineParserMandatoryParameterNotSetException(' ');
   }
+  if (last_parameter_is_not_allowed_ && last_parameter_.empty() == false) {
+    throw CommandLineParserUnknownParameterException(' ');
+  }
 }

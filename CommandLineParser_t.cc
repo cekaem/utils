@@ -188,6 +188,27 @@ TEST_PROCEDURE(LackOfMandatoryLastParameterIsDetected) {
   TEST_END
 }
 
+TEST_PROCEDURE(ParserDetectsPresenceOfLastParameterWhenItIsNotAllowed) {
+  TEST_START
+  {
+    CommandLineParser parser;
+    const char* params[] = {"./prog", "last_parameter"};
+    parser.parse(2, params);
+    VERIFY_STRINGS_EQUAL(parser.getLastParameter().c_str(), "last_parameter");
+  }
+  {
+    CommandLineParser parser;
+    parser.setLastParameterIsNotAllowed();
+    const char* params[] = {"./prog", "last_parameter"};
+    try {
+      parser.parse(2, params);
+    } catch (const CommandLineParser::CommandLineParserUnknownParameterException&) {
+      RETURN
+    }
+    NOT_REACHED
+  }
+  TEST_END
+}
 
 TEST_PROCEDURE(TestOfExamplaryComplexCommandLine) {
   TEST_START

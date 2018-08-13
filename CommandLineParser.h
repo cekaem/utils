@@ -93,6 +93,7 @@ public:
   int getIntegerValue(char parameter);
   double getFloatValue(char parameter);
   void setLastParameterIsMandatory() { last_parameter_mandatory_ = true; }
+  void setLastParameterIsNotAllowed() { last_parameter_is_not_allowed_ = true; }
   const std::string& getLastParameter() { return last_parameter_; }
   void parse(int argc, const char** argv);
 
@@ -154,6 +155,7 @@ private:
   std::vector<std::unique_ptr<Parameter>> parameters_;
   std::string last_parameter_;
   bool last_parameter_mandatory_;
+  bool last_parameter_is_not_allowed_{false};
 };
 
 
