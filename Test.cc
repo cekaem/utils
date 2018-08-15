@@ -51,21 +51,31 @@ std::vector<std::string> extractTestsToLaunchFromString(std::string tests) {
 int main(int argc, const char* argv[]) {
   int repeat_time = 0;
   std::string tests_to_launch_str;
+  bool list_tests = false;
   try {
     CommandLineParser parser;
+    parser.addBinaryParameter('l');
     parser.addIntegerParameter('c', 1);
     parser.addStringParameter('t');
     parser.setLastParameterIsNotAllowed();
     parser.parse(argc, argv);
+    list_tests = parser.getBinaryValue('l');
     repeat_time = parser.getIntegerValue('c');
     tests_to_launch_str = parser.getStringValue('t');
   } catch (CommandLineParser::CommandLineParserGeneralException&) {
-    std::cerr << "Usage: " << argv[0] << " [-c repeat_time] [-t tests_to_launch]" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " [-l] [-c repeat_time] [-t tests_to_launch]" << std::endl;
     return -1;
   }
   if (TestProceduresMapAdder::g_test_procedures == nullptr) {
     return 0;
-  } 
+  }
+
+  if (list_tests  == true) {
+    for (auto& iter: *TestProceduresMapAdder::g_test_procedures) {
+      std::cout << iter.first << std::endl;
+    }
+    return 0;
+  }
 
   auto tests_to_launch = extractTestsToLaunchFromString(tests_to_launch_str);
   int number_of_failed_tests = 0u;
