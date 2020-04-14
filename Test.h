@@ -186,6 +186,7 @@ class TestProceduresMapAdder {
 
 #define RETURN throw Test::EndTestException();
 
-#define NOT_REACHED VERIFY(1 == 0);
+#define NOT_REACHED(msg) Test::SetErrorMessage(msg);\
+                         VERIFY(1 == 0);
 
 #endif // TEST_H
