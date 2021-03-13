@@ -61,29 +61,37 @@ class Test {
   static bool current_test_status_;
 };
 
+template <typename T1, typename T2>
+class TestHelper {
+ public:
+  TestHelper(const T1& t1, const T2& t2, int line)
+    : is_ok_(t1 == t2), line_(line) {
+    if (!is_ok_) {
+      std::stringstream ss;
+      ss << t1 << " vs " << t2 << std::endl;
+      Test::error_message_ = ss.str();
+    }
+  }
+
+  ~TestHelper() noexcept(false) {
+    if (!is_ok_) {
+      Test::error_line_ = line_;
+      Test::error_message_ += error_messsage_stream_.str();
+      throw Test::TestFailedException();
+    }
+  }
+
+  std::stringstream& stream() {
+    return error_messsage_stream_;
+  }
+
+ private:
+  bool is_ok_{true};
+  int line_{-1};
+  std::stringstream error_messsage_stream_;
+};
+
 void VerifyStringsEqual(const char* str1, const char* str2, int line);
-
-template <typename T>
-void VerifyIsEqual(const T& expr1, const T& expr2, int line) {
-  if (expr1 != expr2) {
-    Test::error_line_ = line;
-    std::stringstream ss;
-    ss << expr1 << " vs " << expr2;
-    Test::SetErrorMessage(ss.str());
-    throw Test::TestFailedException();
-  }
-}
-
-template <typename T>
-void VerifyIsEqual(const T* ptr1, const T* ptr2, int line) {
-  if (ptr1 != ptr2) {
-    Test::error_line_ = line;
-    std::stringstream ss;
-    ss << ptr1 << " vs " << ptr2;
-    Test::SetErrorMessage(ss.str());
-    throw Test::TestFailedException();
-  }
-}
 
 template <typename T>
 void VerifyIsNull(const T* ptr1, int line) {
@@ -165,8 +173,7 @@ class TestProceduresMapAdder {
 #define VERIFY(expr) test.Verify(expr, __LINE__)
 #define VERIFY_TRUE(expr) test.Verify(expr, __LINE__)
 #define VERIFY_FALSE(expr) test.Verify(expr == false, __LINE__)
-#define VERIFY_IS_EQUAL(expr1, expr2) VerifyIsEqual(expr1, expr2, __LINE__)
-#define VERIFY_EQUALS(expr1, expr2) VerifyIsEqual(expr1, expr2, __LINE__)
+#define VERIFY_EQUALS(val1, val2) TestHelper(val1, val2, __LINE__).stream()
 #define VERIFY_STRINGS_EQUAL(expr1, expr2) VerifyStringsEqual(expr1, expr2, __LINE__)
 #define VERIFY_CONTAINS(container, value) VerifyContains(container, value, __LINE__)
 #define VERIFY_DOES_NOT_CONTAIN(container, value) VerifyDoesNotContain(container, value, __LINE__)
