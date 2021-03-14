@@ -49,7 +49,7 @@ class Test {
     error_message_ = error_message;
   }
 
-  void Verify(bool expr, int line) {
+  static void Verify(bool expr, int line) {
     if (!expr) {
       error_line_ = line;
       throw TestFailedException();
@@ -171,8 +171,8 @@ class TestProceduresMapAdder {
     Test test;
 
 #define VERIFY(expr) test.Verify(expr, __LINE__)
-#define VERIFY_TRUE(expr) test.Verify(expr, __LINE__)
-#define VERIFY_FALSE(expr) test.Verify(expr == false, __LINE__)
+#define VERIFY_TRUE(expr) TestHelper(expr, true, __LINE__).stream()
+#define VERIFY_FALSE(expr) TestHelper(expr, false, __LINE__).stream()
 #define VERIFY_EQUALS(val1, val2) TestHelper(val1, val2, __LINE__).stream()
 #define VERIFY_STRINGS_EQUAL(expr1, expr2) VerifyStringsEqual(expr1, expr2, __LINE__)
 #define VERIFY_CONTAINS(container, value) VerifyContains(container, value, __LINE__)
