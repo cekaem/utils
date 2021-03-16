@@ -170,7 +170,7 @@ class TestProceduresMapAdder {
   try { \
     Test test;
 
-#define VERIFY(expr) test.Verify(expr, __LINE__)
+#define VERIFY(expr) Test::Verify(expr, __LINE__)
 #define VERIFY_TRUE(expr) TestHelper(expr, true, __LINE__).stream()
 #define VERIFY_FALSE(expr) TestHelper(expr, false, __LINE__).stream()
 #define VERIFY_EQUALS(val1, val2) TestHelper(val1, val2, __LINE__).stream()
