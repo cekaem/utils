@@ -1,10 +1,18 @@
 #ifndef UTILS_H
 #define UTILS_H
+
 #include <string>
+#include <sstream>
 
 namespace utils {
 
-bool str_2_uint(const std::string& str, unsigned& result);
+template <typename T>
+bool str_2_number(const std::string& str, T& result) {
+  std::stringstream ss(str);
+  ss >> result;
+  return ss.fail() == false && ss.bad() == false;
+}
+
 void ltrim(std::string& str);
 unsigned getMemoryUsageOfCurrentProcess();
 

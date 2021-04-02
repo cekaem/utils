@@ -23,12 +23,6 @@ class FileDescriptorWrapper {
 
 namespace utils {
 
-bool str_2_uint(const std::string& str, unsigned& result) {
-  std::stringstream ss(str);
-  ss >> result;
-  return ss.fail() == false && ss.bad() == false;
-}
-
 void ltrim(std::string& str) {
   str.erase(std::begin(str), std::find_if(std::begin(str),
                                           std::end(str),
@@ -56,7 +50,7 @@ unsigned getMemoryUsageOfCurrentProcess() {
       throw std::runtime_error("Error during parsing /proc/self/status");
     }
     std::string memory_consumption_str = sub.substr(0, pos);
-    if (utils::str_2_uint(memory_consumption_str, memory_consumption) == false) {
+    if (utils::str_2_number(memory_consumption_str, memory_consumption) == false) {
       throw std::runtime_error("Error during reading memory consumption from /proc/self/status");
     }
   }
