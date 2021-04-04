@@ -7,24 +7,31 @@
 #include <thread>
 #include <chrono>
 
-
 namespace utils {
 
 class Timer {
  public:
+  ~Timer() {
+    if (thread_.joinable()) {
+      thread_.join();
+    }
+  }
+
   bool start(unsigned time_ms, std::function<void()> callback) {
     if (timer_started_ == true) {
       return false;
     }
     timer_started_ = true;
-    std::thread t(&Timer::timerMain, this, time_ms, callback);
-    t.detach();
+    thread_ = std::thread(&Timer::timerMain, this, time_ms, callback);
     return true;
   }
 
   void stop() {
     timer_started_ = false;
     cv_.notify_one();
+    if (thread_.joinable()) {
+      thread_.join();
+    }
   }
 
  private:
@@ -39,6 +46,7 @@ class Timer {
   }
  
   bool timer_started_{false};
+  std::thread thread_;
   std::condition_variable cv_;
 };
 
