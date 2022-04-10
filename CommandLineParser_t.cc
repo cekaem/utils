@@ -21,7 +21,7 @@ TEST_PROCEDURE(CommandLineParserParameterExistsExceptionIsThrown) {
     VERIFY(e.parameter == 'd');
     RETURN
   }
-  NOT_REACHED
+  NOT_REACHED("Exception was not thrown.");
   TEST_END
 }
 
@@ -35,7 +35,7 @@ TEST_PROCEDURE(UnknownParameterInCommandLineIsDetected) {
     VERIFY(e.parameter == 'a');
     RETURN
   }
-  NOT_REACHED
+  NOT_REACHED("Exception was not thrown.");
   TEST_END
 }
 
@@ -51,7 +51,7 @@ TEST_PROCEDURE(ParserThrowsCommandLineParserUnknownParameterException) {
     VERIFY(e.parameter == 'b');
     RETURN
   }
-  NOT_REACHED
+  NOT_REACHED("Exception was not thrown.");
   TEST_END
 }
 
@@ -68,7 +68,7 @@ TEST_PROCEDURE(LackOfMandatoryParameterIsDetected)
     VERIFY(e.parameter == 's');
     RETURN
   }
-  NOT_REACHED
+  NOT_REACHED("Exception was not thrown.");
   TEST_END
 }
 
@@ -81,7 +81,7 @@ TEST_PROCEDURE(NotMandatoryParametersAreNotTreatedAsMandatory) {
   try {
     parser.parse(2, params);
   } catch (CommandLineParser::CommandLineParserMandatoryParameterNotSetException& e) {
-    NOT_REACHED
+    NOT_REACHED("Exception was thrown.");
   }
   TEST_END
 }
@@ -96,7 +96,7 @@ TEST_PROCEDURE(BadParameterTypeIsDetected) {
     VERIFY(e.parameter == 'a');
     RETURN
   }
-  NOT_REACHED
+  NOT_REACHED("Exception was not thrown.");
   TEST_END
 }
 
@@ -111,7 +111,7 @@ TEST_PROCEDURE(ParameterProvidedWithoutRequiredIntegerValueIsDetected) {
     VERIFY(e.parameter == 'a');
     RETURN;
   }
-  NOT_REACHED
+  NOT_REACHED("Exception was not thrown.");
   TEST_END
 }
 
@@ -126,7 +126,7 @@ TEST_PROCEDURE(ParameterProvidedWithoutRequiredFloatValueIsDetected) {
     VERIFY(e.parameter == 'a');
     RETURN;
   }
-  NOT_REACHED
+  NOT_REACHED("Exception was not thrown.");
   TEST_END
 }
 
@@ -142,7 +142,7 @@ TEST_PROCEDURE(ParameterProvidedWithoutRequiredStringValueIsDetected) {
     VERIFY(e.parameter == 'a');
     RETURN;
   }
-  NOT_REACHED
+  NOT_REACHED("Exception was not thrown.");
   TEST_END
 }
 
@@ -158,7 +158,7 @@ TEST_PROCEDURE(ParseErrorInCommandLineIsDetected) {
     VERIFY(string(e.str) == "some_text");
     RETURN;
   }
-  NOT_REACHED
+  NOT_REACHED("Exception was not thrown.");
   TEST_END
 }
 
@@ -184,7 +184,7 @@ TEST_PROCEDURE(LackOfMandatoryLastParameterIsDetected) {
     VERIFY(e.parameter == ' ');
     RETURN
   }
-  NOT_REACHED
+  NOT_REACHED("Exception was not thrown.");
   TEST_END
 }
 
@@ -205,7 +205,7 @@ TEST_PROCEDURE(ParserDetectsPresenceOfLastParameterWhenItIsNotAllowed) {
     } catch (const CommandLineParser::CommandLineParserUnknownParameterException&) {
       RETURN
     }
-    NOT_REACHED
+    NOT_REACHED("Exception was not thrown.");
   }
   TEST_END
 }

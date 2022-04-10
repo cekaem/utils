@@ -1,14 +1,22 @@
 include Makefile.conf
 
-all: tests
+all: tests obj
 
 dirs:
 	mkdir -p $(BIN_DIR) $(OBJ_DIR)
 
 tests: dirs $(BIN_DIR)/socket_test $(BIN_DIR)/timer_test $(BIN_DIR)/test_test $(BIN_DIR)/command_line_parser_tests
 
+obj: dirs $(OBJ_DIR)/libutils.so
+
+$(OBJ_DIR)/libutils.so: $(OBJ_DIR)/Utils.o $(OBJ_DIR)/Socket.o $(OBJ_DIR)/CommandLineParser.o
+	$(CXX) $(CFLAGS) -shared -o $(OBJ_DIR)/libutils.so $(OBJ_DIR)/Utils.o $(OBJ_DIR)/Socket.o $(OBJ_DIR)/CommandLineParser.o
+
 $(BIN_DIR)/socket_test: $(OBJ_DIR)/socket_test.o $(OBJ_DIR)/Socket.o Socket.h
 	$(CXX) $(CFLAGS) -o $(BIN_DIR)/socket_test $(OBJ_DIR)/socket_test.o $(OBJ_DIR)/Socket.o
+
+$(OBJ_DIR)/Utils.o: Utils.cc Utils.h
+	$(CXX) $(CFLAGS) -c -o $(OBJ_DIR)/Utils.o Utils.cc
 
 $(OBJ_DIR)/Socket.o: Socket.cc Socket.h
 	$(CXX) $(CFLAGS) -c -o $(OBJ_DIR)/Socket.o Socket.cc
